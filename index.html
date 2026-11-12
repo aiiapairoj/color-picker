@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="BUGpairoj Color Picker Studio — ดูดสีจากภาพแบบพิกเซล ได้ค่า HEX, RGB, CMYK ประมวลผลในเครื่องของคุณเท่านั้น">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0B1220">
+  <title>Color Picker Studio · by BUGpairoj</title>
+  <link rel="icon" type="image/svg+xml" href="icons/logo.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <script src="theme-init.js"></script>
+  <script type="module" crossorigin src="./assets/index-ET8h1pKK.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BW43OgMZ.css">
+</head>
+<body class="font-sans min-h-screen">
+  <a href="#workspace" class="skip-link">ข้ามไปพื้นที่ทำงาน</a>
+  <input type="file" id="fileInput" accept="image/*" class="sr-only" tabindex="-1" aria-hidden="true">
+  <input type="file" id="cameraInput" accept="image/*" capture="environment" class="sr-only" tabindex="-1" aria-hidden="true">
+
+  <!-- ===== Header ===== -->
+  <header class="glass sticky top-0 z-40 h-16 flex items-center gap-3 px-3 sm:px-4 lg:px-6 border-x-0 border-t-0">
+    <button id="btnSidebar" class="icon-btn hidden lg:inline-grid" aria-label="ย่อ/ขยายแถบเมนู" aria-controls="sidebar" aria-expanded="true">
+      <i data-lucide="panel-left"></i>
+    </button>
+    <a href="./" class="flex items-center gap-3 min-w-0">
+      <img src="icons/logo.svg" alt="" class="w-9 h-9 rounded-xl shadow-lg shadow-orange-500/30" width="36" height="36">
+      <span class="leading-tight min-w-0">
+        <span class="block font-semibold truncate">Color Picker Studio</span>
+        <span class="block text-[11px] text-mute">by BUGpairoj</span>
+      </span>
+    </a>
+    <div class="flex-1"></div>
+    <button class="btn btn-outline hidden sm:inline-flex" data-action="open" aria-label="เปิดรูปภาพ (O)">
+      <i data-lucide="image-plus"></i><span>เปิดรูปภาพ</span>
+    </button>
+    <button class="btn btn-outline hidden md:inline-flex" data-action="capture" data-feature="displayCapture" aria-label="จับภาพหน้าจอ (S)" title="จับภาพหน้าจอแล้วดูดสี (S)">
+      <i data-lucide="monitor"></i><span class="hidden xl:inline">จับภาพหน้าจอ</span>
+    </button>
+    <button class="btn btn-primary hidden md:inline-flex" data-action="eyedropper" data-feature="eyeDropper" aria-label="ดูดสีจากหน้าจอ (E)">
+      <i data-lucide="pipette"></i><span class="hidden xl:inline">ดูดสีจากหน้าจอ</span>
+    </button>
+    <span id="offlineBadge" class="pill pill-amber items-center gap-1" hidden title="ไม่มีอินเทอร์เน็ต — ยังเปิดภาพจากเครื่องและดูดสีได้"><i data-lucide="wifi-off" class="!w-3 !h-3"></i>ออฟไลน์</span>
+    <button class="icon-btn lg:hidden" data-action="palettes" aria-label="พาเลตต์ของฉัน (L)" title="พาเลตต์ของฉัน (L)"><i data-lucide="palette"></i></button>
+    <button class="icon-btn lg:hidden" data-action="settings" aria-label="ตั้งค่า (,)" title="ตั้งค่า (,)"><i data-lucide="settings"></i></button>
+    <button id="btnFullscreen" class="icon-btn" aria-label="เต็มจอ" aria-pressed="false" title="เต็มจอ">
+      <i data-lucide="maximize-2"></i>
+    </button>
+    <button id="btnTheme" class="icon-btn" aria-label="สลับธีม" title="สลับธีม">
+      <i data-lucide="sun-moon"></i>
+    </button>
+  </header>
+
+  <div class="flex">
+    <!-- ===== Sidebar ===== -->
+    <aside id="sidebar" class="sidebar hidden lg:flex" aria-label="เมนูหลัก">
+      <nav class="flex flex-col gap-1">
+        <div class="nav-label">เมนูหลัก</div>
+        <a class="nav-item active" href="./" aria-current="page"><i data-lucide="layout-dashboard"></i><span>Studio</span></a>
+        <button class="nav-item" data-action="open"><i data-lucide="image-plus"></i><span>เปิดรูปภาพ</span><kbd class="nav-kbd">O</kbd></button>
+        <button class="nav-item" data-action="capture" data-feature="displayCapture"><i data-lucide="monitor"></i><span>จับภาพหน้าจอ</span><kbd class="nav-kbd">S</kbd></button>
+        <button class="nav-item" data-action="eyedropper" data-feature="eyeDropper"><i data-lucide="crosshair"></i><span>ดูดสีจากหน้าจอ</span><kbd class="nav-kbd">E</kbd></button>
+        <button class="nav-item" data-action="clear" data-needs-image disabled><i data-lucide="image-off"></i><span>ล้างภาพ</span></button>
+        <div class="nav-label mt-3">คลังสี</div>
+        <button class="nav-item" data-action="palettes"><i data-lucide="palette"></i><span>พาเลตต์ของฉัน</span><kbd class="nav-kbd">L</kbd></button>
+        <button class="nav-item" data-action="settings"><i data-lucide="settings"></i><span>ตั้งค่า</span><kbd class="nav-kbd">,</kbd></button>
+        <button class="nav-item" data-action="shortcuts"><i data-lucide="keyboard"></i><span>คีย์ลัด</span><kbd class="nav-kbd">?</kbd></button>
+      </nav>
+      <div class="flex-1"></div>
+      <div class="side-note glass">
+        <i data-lucide="shield-check" class="text-emerald-500"></i>
+        <span>ภาพประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการอัปโหลด</span>
+      </div>
+      <div class="side-brand">AI Pairoj · <b>by BUGpairoj</b></div>
+    </aside>
+
+    <!-- ===== Workspace ===== -->
+    <main id="workspace" class="flex-1 min-w-0 p-3 sm:p-4 lg:pl-0 pb-[84px] md:pb-4" tabindex="-1">
+      <section class="glass panel flex flex-col h-[calc(100dvh-4rem-0.75rem-84px)] md:h-[calc(100dvh-6.5rem)] min-h-[360px] overflow-hidden" aria-label="พื้นที่ทำงานภาพ">
+        <!-- toolbar -->
+        <div class="toolbar" role="toolbar" aria-label="เครื่องมือภาพ">
+          <button class="tool sm:hidden" data-action="open" aria-label="เปิดรูปภาพ"><i data-lucide="image-plus"></i></button>
+          <button class="tool" data-action="camera" data-touch-only hidden aria-label="ถ่ายภาพด้วยกล้อง"><i data-lucide="camera"></i></button>
+          <button class="tool md:hidden" data-action="capture" data-feature="displayCapture" aria-label="จับภาพหน้าจอ"><i data-lucide="monitor"></i></button>
+          <button class="tool md:hidden" data-action="eyedropper" data-feature="eyeDropper" aria-label="ดูดสีจากหน้าจอ"><i data-lucide="crosshair"></i></button>
+          <span class="tool-sep sm:hidden"></span>
+          <div class="seg" role="radiogroup" aria-label="โหมดเครื่องมือ">
+            <button role="radio" class="seg-text" data-mode="pick" aria-checked="true" data-needs-image disabled aria-label="Picker — ตัวดูดสี (P)" title="ตัวดูดสี (P)"><i data-lucide="pipette"></i><span class="hidden sm:inline">Picker</span></button>
+            <button role="radio" class="seg-text" data-mode="hand" aria-checked="false" data-needs-image disabled aria-label="Hand — เลื่อนภาพ (H หรือกด Space ค้าง)" title="เลื่อนภาพ (H / Space ค้าง)"><i data-lucide="hand"></i><span class="hidden sm:inline">Hand</span></button>
+          </div>
+          <span class="tool-sep"></span>
+          <button class="tool" id="btnFit" data-needs-image disabled aria-label="Fit — พอดีหน้าจอ (0)"><i data-lucide="scan"></i><span class="hidden sm:inline">Fit</span></button>
+          <button class="tool" id="btn100" data-needs-image disabled aria-label="ขนาดจริง 100% (1)">100%</button>
+          <span class="tool-sep"></span>
+          <button class="tool" id="btnZoomOut" data-needs-image disabled aria-label="ซูมออก (-)"><i data-lucide="zoom-out"></i></button>
+          <output id="zoomLabel" class="font-mono text-xs w-14 text-center text-mute" aria-live="polite">—</output>
+          <button class="tool" id="btnZoomIn" data-needs-image disabled aria-label="ซูมเข้า (+)"><i data-lucide="zoom-in"></i></button>
+          <span class="tool-sep"></span>
+          <div class="seg" role="radiogroup" aria-label="พื้นหลังภาพโปร่งใส">
+            <button role="radio" data-bg="checker" aria-label="พื้นหลังตาราง" title="ตาราง"><span class="seg-dot checker"></span></button>
+            <button role="radio" data-bg="white" aria-label="พื้นหลังขาว" title="ขาว"><span class="seg-dot bg-white"></span></button>
+            <button role="radio" data-bg="black" aria-label="พื้นหลังดำ" title="ดำ"><span class="seg-dot bg-black"></span></button>
+          </div>
+          <span class="tool-sep"></span>
+          <button class="tool" id="btnGrid" aria-pressed="true" aria-label="เส้นตารางพิกเซลในแว่นขยาย (G)" title="Pixel grid (G)"><i data-lucide="grid-3x3"></i></button>
+          <label class="tool !px-1.5" title="กำลังขยายของแว่นขยาย">
+            <i data-lucide="search"></i><span class="sr-only">กำลังขยายแว่นขยาย</span>
+            <select id="loupeZoom" class="zoom-select" aria-label="กำลังขยายแว่นขยาย">
+              <option value="4">4×</option><option value="8">8×</option><option value="12" selected>12×</option><option value="16">16×</option><option value="24">24×</option>
+            </select>
+          </label>
+          <div class="flex-1"></div>
+          <button class="tool" data-action="clear" data-needs-image disabled aria-label="ล้างภาพ"><i data-lucide="x"></i><span class="hidden md:inline">ล้างภาพ</span></button>
+        </div>
+
+        <!-- stage -->
+        <div id="stage" class="stage" tabindex="0" role="application" aria-roledescription="พื้นที่ดูดสี" aria-label="พื้นที่ภาพ — ใช้ลูกศรเลื่อนจุดดูดสี (Shift = 10 พิกเซล) และ Enter เพื่อเลือกสี" aria-describedby="statusMeta">
+          <div id="stageInner" class="stage-inner" hidden>
+            <div id="frame" class="frame checker"><canvas id="sourceCanvas" aria-label="ภาพที่เปิดอยู่" role="img"></canvas></div>
+          </div>
+
+          <!-- empty state -->
+          <div id="emptyState" class="state-center">
+            <div class="empty-card">
+              <div class="empty-icon"><i data-lucide="image-plus"></i></div>
+              <h1 class="text-lg sm:text-xl font-semibold">เริ่มดูดสีจากรูปภาพ</h1>
+              <p class="text-sm text-mute">ลากรูปมาวางที่นี่ · กด <kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">V</kbd> เพื่อวางภาพจาก Clipboard</p>
+              <div class="flex flex-wrap gap-2 justify-center mt-2">
+                <button class="btn btn-primary" data-action="open"><i data-lucide="folder-open"></i><span>เลือกรูปภาพ</span></button>
+                <button class="btn btn-outline" data-action="camera" data-touch-only hidden><i data-lucide="camera"></i><span>ถ่ายภาพ</span></button>
+                <button class="btn btn-outline" data-action="capture" data-feature="displayCapture"><i data-lucide="monitor"></i><span>จับภาพหน้าจอ</span></button>
+                <button class="btn btn-outline" data-action="eyedropper" data-feature="eyeDropper"><i data-lucide="crosshair"></i><span>ดูดสีจากหน้าจอ</span></button>
+              </div>
+              <p id="screenSupportNote" class="text-[11px] text-mute max-w-sm" hidden></p>
+              <p class="text-[11px] text-mute mt-1">PNG · JPG · WebP · GIF · BMP — สูงสุด 25 MB</p>
+              <p class="text-[11px] text-mute flex items-center gap-1.5 justify-center"><i data-lucide="lock" class="w-3.5 h-3.5"></i>ไฟล์ไม่ถูกส่งออกจากเครื่องของคุณ</p>
+            </div>
+          </div>
+
+          <!-- error state -->
+          <div id="errorState" class="state-center" hidden role="alert">
+            <div class="empty-card">
+              <div class="empty-icon !bg-rose-500/15 !text-rose-500"><i data-lucide="triangle-alert"></i></div>
+              <h2 class="text-lg font-semibold">เปิดภาพไม่สำเร็จ</h2>
+              <p id="errorText" class="text-sm text-mute max-w-sm"></p>
+              <div class="flex gap-2 mt-2 justify-center">
+                <button class="btn btn-primary" data-action="open"><i data-lucide="folder-open"></i><span>เลือกไฟล์ใหม่</span></button>
+                <button class="btn btn-outline" id="btnDismissError">ปิด</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- drag overlay -->
+          <div id="dropOverlay" class="drop-overlay" hidden aria-hidden="true">
+            <i data-lucide="image-down" class="w-10 h-10"></i><span>วางรูปภาพเพื่อเปิด</span>
+          </div>
+          <!-- loading -->
+          <div id="loadingState" class="loading-overlay" hidden role="status">
+            <span class="spinner" aria-hidden="true"></span><span id="loadingText">กำลังถอดรหัสภาพ…</span>
+          </div>
+        </div>
+
+        <!-- status bar -->
+        <div class="statusbar">
+          <span id="statusMeta" class="flex items-center gap-1.5 min-w-0"><i data-lucide="file-image" class="w-3.5 h-3.5 text-brand shrink-0"></i><span id="statusText" class="truncate">ยังไม่มีภาพ</span></span>
+          <span id="statusWarn" class="text-amber-500 flex items-center gap-1" hidden><i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i><span></span></span>
+          <span class="sm:ml-auto font-mono flex items-center gap-3" aria-live="off">
+            <span class="coords">x <b id="posX" class="text-[color:var(--ink)]">—</b></span>
+            <span class="coords">y <b id="posY" class="text-[color:var(--ink)]">—</b></span>
+            <span class="flex items-center gap-1.5"><span id="hoverSwatch" class="w-3 h-3 rounded-sm ring-1 ring-black/20 checker"></span><span id="hoverHex">—</span></span>
+          </span>
+        </div>
+
+        <!-- history bar -->
+        <div class="historybar" role="region" aria-labelledby="hHistory">
+          <div class="flex items-center gap-2 shrink-0">
+            <h2 id="hHistory" class="text-[11px] uppercase tracking-wider text-mute whitespace-nowrap">สีล่าสุด <span id="historyCount" class="font-mono normal-case">0</span></h2>
+            <span id="historyVolatile" class="pill pill-amber" hidden title="เบราว์เซอร์ไม่อนุญาต IndexedDB (เช่นโหมดส่วนตัว)">ไม่บันทึกถาวร</span>
+          </div>
+          <ul id="historyList" class="history-list" aria-label="ประวัติสีที่เลือก"></ul>
+          <p id="historyEmpty" class="text-xs text-mute flex-1">ยังไม่มีประวัติ — คลิกบนภาพเพื่อเลือกสี</p>
+          <div class="flex items-center gap-1 shrink-0">
+            <button id="btnFavCurrent" class="tool" disabled aria-pressed="false" aria-label="ปักหมุดสีที่เลือก" title="ปักหมุด/เลิกปักหมุดสีที่เลือก"><i data-lucide="pin"></i></button>
+            <button id="btnDeleteCurrent" class="tool" disabled aria-label="ลบสีที่เลือกออกจากประวัติ" title="ลบสีที่เลือกออกจากประวัติ"><i data-lucide="eraser"></i></button>
+            <span class="tool-sep"></span>
+            <button id="btnFavFilter" class="tool" aria-pressed="false" aria-label="แสดงเฉพาะสีที่ปักหมุด" title="เฉพาะ ★"><i data-lucide="star"></i></button>
+            <button id="btnClearHistory" class="tool" disabled aria-label="ล้างประวัติสี" title="ล้างประวัติ"><i data-lucide="trash-2"></i></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== Inspector (bottom sheet on mobile) ===== -->
+    <aside id="inspector" class="inspector" aria-label="Color Inspector">
+      <div class="glass panel inspector-card">
+        <button id="sheetHandle" class="sheet-handle md:hidden" aria-expanded="false" aria-controls="inspectorBody">
+          <span class="sheet-grip" aria-hidden="true"></span>
+          <span class="flex items-center gap-3 w-full">
+            <span id="miniSwatch" class="w-9 h-9 rounded-xl checker ring-1 ring-black/10"></span>
+            <span class="flex-1 text-left"><span class="block text-xs text-mute">สีที่เลือก</span><span id="miniHex" class="font-mono font-semibold text-sm">ยังไม่ได้เลือก</span></span>
+            <i data-lucide="chevron-up" class="sheet-chevron"></i>
+          </span>
+        </button>
+        <div id="inspectorBody" class="flex flex-col gap-4">
+          <div class="hidden md:flex items-center justify-between">
+            <h2 class="font-semibold">Color Inspector</h2>
+          </div>
+
+          <div class="grid grid-cols-[1fr_72px] gap-2 h-40">
+            <div class="swatch-box checker">
+              <div id="pickedSwatch" class="swatch-fill"></div>
+              <span id="pickedLabel" class="swatch-label">ยังไม่ได้เลือกสี</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <div class="swatch-box checker flex-1" title="สีใต้เคอร์เซอร์ตอนนี้ (ยังไม่บันทึก)"><div id="previewSwatch" class="swatch-fill"></div></div>
+              <span class="text-[10px] text-mute text-center leading-none">Preview</span>
+              <button id="prevSwatchBtn" class="swatch-box checker flex-1" disabled aria-label="กลับไปใช้สีที่เลือกก่อนหน้า" title="สีที่เลือกก่อนหน้า — คลิกเพื่อสลับ"><span id="prevSwatch" class="swatch-fill"></span></button>
+              <span class="text-[10px] text-mute text-center leading-none">ก่อนหน้า</span>
+            </div>
+          </div>
+
+          <div id="alphaPolicy" class="flex flex-col gap-1.5" hidden>
+            <span class="text-[11px] text-mute">พิกเซลโปร่งใส — แสดงค่า HEX/RGB/CMYK แบบ:</span>
+            <div class="seg w-full" role="radiogroup" aria-label="นโยบายการผสมสีโปร่งใส">
+              <button role="radio" class="seg-text flex-1" data-alpha="white" aria-checked="true">บนพื้นขาว</button>
+              <button role="radio" class="seg-text flex-1" data-alpha="black" aria-checked="false">บนพื้นดำ</button>
+              <button role="radio" class="seg-text flex-1" data-alpha="custom" aria-checked="false">กำหนดเอง</button>
+              <button role="radio" class="seg-text flex-1" data-alpha="raw" aria-checked="false">ค่าดิบ</button>
+            </div>
+            <label id="alphaCustomWrap" class="flex items-center gap-2 text-xs text-mute" hidden>
+              สีพื้นหลัง <input type="color" id="alphaCustom" value="#808080" class="w-8 h-6 rounded border-0 bg-transparent cursor-pointer">
+            </label>
+          </div>
+
+          <div id="valueRows" class="flex flex-col gap-1.5" aria-live="polite">
+            <div class="value-row"><span class="value-key">HEX</span><output data-v="hex" class="value-val">—</output><button class="icon-copy" data-copy="hex" disabled aria-label="คัดลอก HEX"><i data-lucide="copy"></i></button></div>
+            <div class="value-row" data-alpha-only hidden><span class="value-key">HEX8</span><output data-v="hex8" class="value-val">—</output><button class="icon-copy" data-copy="hex8" disabled aria-label="คัดลอก HEX8"><i data-lucide="copy"></i></button></div>
+            <div class="value-row"><span class="value-key">RGB</span><output data-v="rgb" class="value-val">—</output><button class="icon-copy" data-copy="rgb" disabled aria-label="คัดลอก RGB"><i data-lucide="copy"></i></button></div>
+            <div class="value-row" data-alpha-only hidden><span class="value-key">RGBA</span><output data-v="rgba" class="value-val">—</output><button class="icon-copy" data-copy="rgba" disabled aria-label="คัดลอก RGBA"><i data-lucide="copy"></i></button></div>
+            <div class="value-row"><span class="value-key">CMYK</span><output data-v="cmyk" class="value-val">—</output><button class="icon-copy" data-copy="cmyk" disabled aria-label="คัดลอก CMYK"><i data-lucide="copy"></i></button></div>
+            <div class="value-row"><span class="value-key">HSL</span><output data-v="hsl" class="value-val">—</output><button class="icon-copy" data-copy="hsl" disabled aria-label="คัดลอก HSL"><i data-lucide="copy"></i></button></div>
+            <div class="value-row"><span class="value-key">HSV</span><output data-v="hsv" class="value-val">—</output><button class="icon-copy" data-copy="hsv" disabled aria-label="คัดลอก HSV"><i data-lucide="copy"></i></button></div>
+          </div>
+          <button id="btnCopyAll" class="btn btn-outline w-full" disabled><i data-lucide="clipboard-list"></i><span>Copy All</span><kbd class="kbd ml-1">Shift+C</kbd></button>
+
+          <section aria-labelledby="hPal" class="border-t line pt-3">
+            <div class="flex items-center justify-between mb-2">
+              <h3 id="hPal" class="section-title !mb-0">เพิ่มลงพาเลตต์</h3>
+              <button class="link-btn" data-action="palettes">จัดการ / ส่งออก</button>
+            </div>
+            <div class="flex gap-2">
+              <select id="activePalette" class="input flex-1 min-w-0" aria-label="พาเลตต์ปลายทาง"></select>
+              <button id="btnAddToPalette" class="btn btn-primary !px-3" disabled title="เพิ่มสีที่เลือกลงพาเลตต์ (A)"><i data-lucide="plus"></i><span>เพิ่ม</span><span class="sr-only">สีที่เลือกลงพาเลตต์ (A)</span></button>
+            </div>
+            <ul id="activeStrip" class="pal-strip mt-2" aria-label="สีในพาเลตต์ที่เลือก"></ul>
+          </section>
+
+          <section aria-labelledby="hExtract" class="border-t line pt-3">
+            <h3 id="hExtract" class="section-title">สีหลักในภาพ</h3>
+            <div class="flex gap-2 items-center">
+              <div class="seg" role="radiogroup" aria-label="จำนวนสีที่จะสกัด">
+                <button role="radio" class="seg-text" data-extract-count="5" aria-checked="true">5</button>
+                <button role="radio" class="seg-text" data-extract-count="8" aria-checked="false">8</button>
+                <button role="radio" class="seg-text" data-extract-count="12" aria-checked="false">12</button>
+              </div>
+              <button id="btnExtract" class="btn btn-outline flex-1" data-needs-image disabled><i data-lucide="sparkles"></i><span>สกัดสีหลัก</span></button>
+            </div>
+            <ul id="extractList" class="extract-list mt-2" aria-label="สีหลักที่สกัดได้"></ul>
+            <p id="extractMeta" class="text-[11px] text-mute leading-snug mt-1" hidden></p>
+            <div id="extractActions" class="flex gap-2 mt-2" hidden>
+              <button id="btnExtractSave" class="btn btn-outline flex-1"><i data-lucide="palette"></i><span>บันทึกเป็นพาเลตต์</span></button>
+              <button id="btnExtractCopy" class="btn btn-outline" aria-label="คัดลอก HEX ทั้งชุด" title="คัดลอก HEX ทั้งชุด"><i data-lucide="copy"></i></button>
+            </div>
+          </section>
+
+          <section aria-labelledby="hContrast" class="border-t line pt-3">
+            <h3 id="hContrast" class="section-title">WCAG Contrast (ตัวอักษรบนสีนี้)</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <div id="contrastWhite" class="contrast-card"><span class="text-base font-semibold">Aa ขาว</span><span data-ratio class="font-mono text-xs">—</span><span data-level class="text-[11px]">—</span></div>
+              <div id="contrastBlack" class="contrast-card"><span class="text-base font-semibold">Aa ดำ</span><span data-ratio class="font-mono text-xs">—</span><span data-level class="text-[11px]">—</span></div>
+            </div>
+            <p class="text-[11px] text-mute mt-2 leading-snug">ตัวอักษรปกติต้อง ≥ 4.5:1 (AA) · ตัวใหญ่ ≥ 3:1</p>
+          </section>
+          <p id="pickMeta" class="text-[11px] text-mute leading-snug">เปิดภาพแล้วคลิก (หรือแตะ) บนภาพเพื่อเลือกสี</p>
+          <p id="alphaNote" class="text-[11px] text-amber-600 dark:text-amber-400 leading-snug" hidden></p>
+          <p class="text-[11px] text-mute leading-snug">* CMYK เป็นค่าประมาณจาก sRGB ไม่ใช่ค่าแยกสีตาม ICC Profile ของโรงพิมพ์</p>
+
+          <section aria-labelledby="hImg" class="border-t line pt-3">
+            <h3 id="hImg" class="section-title">ข้อมูลภาพ</h3>
+            <dl id="imageInfo" class="info-list">
+              <div><dt>ไฟล์</dt><dd data-k="name">—</dd></div>
+              <div><dt>ขนาดภาพ</dt><dd data-k="dims" class="font-mono">—</dd></div>
+              <div><dt>ชนิด</dt><dd data-k="type">—</dd></div>
+              <div><dt>ขนาดไฟล์</dt><dd data-k="size" class="font-mono">—</dd></div>
+              <div><dt>Sampling</dt><dd data-k="sampling">—</dd></div>
+            </dl>
+          </section>
+
+          <section aria-labelledby="hCap" class="border-t line pt-3">
+            <h3 id="hCap" class="section-title">ความสามารถของเบราว์เซอร์นี้</h3>
+            <ul id="capList" class="cap-list"></ul>
+            <p class="text-[11px] text-mute mt-2 leading-snug">ตรวจจากความสามารถจริงของเบราว์เซอร์ ไม่ได้เดาจากชื่อเบราว์เซอร์</p>
+          </section>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Loupe (magnifier) -->
+  <div id="loupe" class="loupe" hidden aria-hidden="true">
+    <canvas class="loupe-canvas"></canvas>
+    <div class="loupe-chip"><span data-loupe-swatch class="loupe-swatch"></span><span data-loupe-hex class="font-semibold"></span><span data-loupe-rgb class="opacity-75"></span></div>
+  </div>
+
+  <!-- Shortcuts dialog -->
+  <dialog id="shortcutsDialog" class="dialog glass" aria-labelledby="scTitle">
+    <form method="dialog">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="scTitle" class="font-semibold">คีย์ลัด</h2>
+        <button class="icon-btn" value="close" aria-label="ปิด"><i data-lucide="x"></i></button>
+      </div>
+      <dl class="sc-list">
+        <div><dt><kbd class="kbd">O</kbd></dt><dd>เปิดรูปภาพ</dd></div>
+        <div><dt><kbd class="kbd">E</kbd></dt><dd>ดูดสีจากหน้าจอ (EyeDropper)</dd></div>
+        <div><dt><kbd class="kbd">S</kbd></dt><dd>จับภาพหน้าจอแล้วดูดสี</dd></div>
+        <div><dt><kbd class="kbd">P</kbd> / <kbd class="kbd">H</kbd></dt><dd>โหมดดูดสี / โหมดเลื่อนภาพ</dd></div>
+        <div><dt><kbd class="kbd">Space</kbd> ค้าง + ลาก</dt><dd>เลื่อนภาพชั่วคราว</dd></div>
+        <div><dt><kbd class="kbd">←</kbd><kbd class="kbd">↑</kbd><kbd class="kbd">→</kbd><kbd class="kbd">↓</kbd></dt><dd>ขยับจุดดูดสี 1 px (Shift = 10)</dd></div>
+        <div><dt><kbd class="kbd">Enter</kbd></dt><dd>เลือกสีที่จุดดูดสี</dd></div>
+        <div><dt><kbd class="kbd">C</kbd> / <kbd class="kbd">Shift</kbd>+<kbd class="kbd">C</kbd></dt><dd>คัดลอกค่าเริ่มต้น (<span id="scCopyFmt">HEX</span>) / คัดลอกทุกค่า</dd></div>
+        <div><dt><kbd class="kbd">A</kbd></dt><dd>เพิ่มสีที่เลือกลงพาเลตต์</dd></div>
+        <div><dt><kbd class="kbd">L</kbd> / <kbd class="kbd">,</kbd></dt><dd>พาเลตต์ของฉัน / ตั้งค่า</dd></div>
+        <div><dt><kbd class="kbd">G</kbd> / <kbd class="kbd">[</kbd> <kbd class="kbd">]</kbd></dt><dd>Pixel grid / ลด-เพิ่มกำลังขยายแว่น</dd></div>
+        <div><dt><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">V</kbd></dt><dd>วางภาพจาก Clipboard</dd></div>
+        <div><dt><kbd class="kbd">+</kbd> / <kbd class="kbd">−</kbd></dt><dd>ซูมเข้า / ซูมออก</dd></div>
+        <div><dt><kbd class="kbd">0</kbd> / <kbd class="kbd">1</kbd></dt><dd>พอดีหน้าจอ / ขนาดจริง 100%</dd></div>
+        <div><dt><kbd class="kbd">Ctrl</kbd>+ล้อเมาส์</dt><dd>ซูมภาพ</dd></div>
+        <div><dt><kbd class="kbd">F</kbd></dt><dd>เต็มจอ</dd></div>
+        <div><dt><kbd class="kbd">?</kbd></dt><dd>เปิดหน้านี้</dd></div>
+        <div><dt><kbd class="kbd">Esc</kbd></dt><dd>ซ่อนแว่นขยาย / ปิดหน้าต่าง / แผงด้านล่าง</dd></div>
+        <div><dt>มือถือ</dt><dd>แตะ = เลือกสี · แตะค้างแล้วลาก = แว่นขยาย · ลาก 1 นิ้ว = เลื่อน · 2 นิ้ว = ซูม</dd></div>
+      </dl>
+    </form>
+  </dialog>
+
+  <!-- Palettes dialog -->
+  <dialog id="paletteDialog" class="dialog dialog-wide glass" aria-labelledby="plTitle">
+    <div class="flex items-center gap-2 mb-4">
+      <h2 id="plTitle" class="font-semibold flex items-center gap-2"><i data-lucide="palette" class="text-brand"></i>พาเลตต์ของฉัน</h2>
+      <span id="plCount" class="font-mono text-xs text-mute"></span>
+      <span id="plVolatile" class="pill pill-amber" hidden title="เบราว์เซอร์ไม่อนุญาต IndexedDB">ไม่บันทึกถาวร</span>
+      <div class="flex-1"></div>
+      <button class="icon-btn" data-close aria-label="ปิด"><i data-lucide="x"></i></button>
+    </div>
+    <div class="pl-grid">
+      <div class="pl-side">
+        <div class="flex gap-2">
+          <button id="plNew" class="btn btn-primary flex-1"><i data-lucide="plus"></i><span>สร้างใหม่</span></button>
+          <button id="plImport" class="btn btn-outline" aria-label="นำเข้าพาเลตต์จากไฟล์ JSON" title="นำเข้า JSON"><i data-lucide="upload"></i><span>นำเข้า</span></button>
+        </div>
+        <ul id="plList" class="pl-list" aria-label="รายการพาเลตต์"></ul>
+        <p id="plListEmpty" class="text-xs text-mute px-1">ยังไม่มีพาเลตต์ — กด “สร้างใหม่” หรือเลือกสีแล้วกด “เพิ่ม” ในแผงสี</p>
+        <button id="plExportAll" class="btn btn-outline btn-sm" disabled><i data-lucide="download"></i><span>สำรองทั้งหมด (JSON)</span></button>
+      </div>
+      <div class="pl-main">
+        <div id="plEditor" class="flex flex-col gap-3" hidden>
+          <label class="flex flex-col gap-1 text-xs text-mute">ชื่อพาเลตต์
+            <input id="plName" class="input text-sm" maxlength="60" autocomplete="off" spellcheck="false">
+          </label>
+          <ul id="plColors" class="pl-colors" aria-label="สีในพาเลตต์"></ul>
+          <p id="plColorsEmpty" class="text-xs text-mute">ยังไม่มีสี — เลือกสีจากภาพหรือประวัติ แล้วกด “เพิ่ม” (หรือ <kbd class="kbd">A</kbd>)</p>
+          <div class="pl-actions">
+            <span class="pl-actions-label">ส่งออกไฟล์</span>
+            <button class="btn btn-outline btn-sm" data-export="json"><i data-lucide="file-json"></i><span>JSON</span></button>
+            <button class="btn btn-outline btn-sm" data-export="csv"><i data-lucide="file-spreadsheet"></i><span>CSV</span></button>
+            <button class="btn btn-outline btn-sm" data-export="css"><i data-lucide="file-code"></i><span>CSS</span></button>
+            <button class="btn btn-outline btn-sm" data-export="png"><i data-lucide="image-down"></i><span>PNG</span></button>
+          </div>
+          <div class="pl-actions">
+            <span class="pl-actions-label">คัดลอก</span>
+            <button class="btn btn-outline btn-sm" data-copy-as="css"><i data-lucide="braces"></i><span>CSS Variables</span></button>
+            <button class="btn btn-outline btn-sm" data-copy-as="tailwind"><i data-lucide="wind"></i><span>Tailwind</span></button>
+            <button class="btn btn-outline btn-sm" data-copy-as="hex"><i data-lucide="copy"></i><span>HEX</span></button>
+          </div>
+          <div class="pl-actions border-t line pt-3">
+            <button id="plDuplicate" class="btn btn-outline btn-sm"><i data-lucide="copy-plus"></i><span>ทำสำเนา</span></button>
+            <button id="plUse" class="btn btn-outline btn-sm"><i data-lucide="pin"></i><span>ตั้งเป็นปลายทาง</span></button>
+            <div class="flex-1"></div>
+            <button id="plDelete" class="btn btn-sm btn-danger"><i data-lucide="trash-2"></i><span>ลบพาเลตต์</span></button>
+          </div>
+        </div>
+        <div id="plNoSel" class="pl-empty">
+          <i data-lucide="palette"></i>
+          <p class="text-sm text-mute">เลือกพาเลตต์ทางซ้าย หรือสร้างใหม่</p>
+        </div>
+        <div id="plReport" class="pl-report" hidden role="status">
+          <div class="flex items-center justify-between gap-2"><b id="plReportTitle" class="text-sm"></b><button class="link-btn" id="plReportClose">ปิด</button></div>
+          <ul id="plReportList" class="text-xs list-disc pl-5 mt-1 max-h-32 overflow-auto"></ul>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="plImportInput" accept=".json,application/json" class="sr-only" tabindex="-1" aria-hidden="true">
+  </dialog>
+
+  <!-- Settings dialog -->
+  <dialog id="settingsDialog" class="dialog dialog-mid glass" aria-labelledby="stTitle">
+    <div class="flex items-center gap-2 mb-1">
+      <h2 id="stTitle" class="font-semibold flex items-center gap-2"><i data-lucide="settings" class="text-brand"></i>ตั้งค่า</h2>
+      <div class="flex-1"></div>
+      <button class="icon-btn" data-close aria-label="ปิด"><i data-lucide="x"></i></button>
+    </div>
+    <p class="text-[11px] text-mute mb-3">มีผลทันทีและจำไว้ในเบราว์เซอร์นี้ (localStorage)</p>
+    <div class="st-body">
+      <section class="st-sec" aria-labelledby="stLook">
+        <h3 id="stLook" class="section-title">การแสดงผล</h3>
+        <label class="st-row"><span>ธีม</span>
+          <select class="input" data-pref="theme"><option value="system">ตามระบบ</option><option value="light">สว่าง</option><option value="dark">มืด</option></select></label>
+        <label class="st-row"><span>ลดแอนิเมชัน<small>ปิด = ทำตามการตั้งค่าของระบบ</small></span><input type="checkbox" class="switch" data-pref="motion" data-on="reduce" data-off="system"></label>
+        <div class="st-row"><span>ภาษา</span><span class="text-sm">ไทย <small class="text-mute">(English อยู่ในแผนพัฒนา)</small></span></div>
+      </section>
+      <section class="st-sec" aria-labelledby="stLoupe">
+        <h3 id="stLoupe" class="section-title">แว่นขยาย</h3>
+        <div class="st-row"><span id="stShapeL">รูปทรง</span>
+          <div class="seg" role="radiogroup" aria-labelledby="stShapeL">
+            <button role="radio" class="seg-text" data-pref-radio="loupeShape" data-value="circle">วงกลม</button>
+            <button role="radio" class="seg-text" data-pref-radio="loupeShape" data-value="square">สี่เหลี่ยม</button>
+          </div></div>
+        <label class="st-row"><span>ขนาด (px)</span>
+          <select class="input" data-pref="loupeSize" data-num><option>120</option><option>140</option><option>160</option><option>180</option><option>200</option><option>220</option></select></label>
+        <label class="st-row"><span>กำลังขยาย</span>
+          <select class="input" data-pref="loupeZoom" data-num><option value="4">4×</option><option value="8">8×</option><option value="12">12×</option><option value="16">16×</option><option value="24">24×</option></select></label>
+        <label class="st-row"><span>เส้นตารางพิกเซล</span><input type="checkbox" class="switch" data-pref="pixelGrid"></label>
+        <label class="st-row"><span>เป้าเล็ง (Crosshair)</span><input type="checkbox" class="switch" data-pref="crosshair"></label>
+        <label class="st-row"><span>แสดงพิกัด x, y</span><input type="checkbox" class="switch" data-pref="showCoords"></label>
+      </section>
+      <section class="st-sec" aria-labelledby="stVal">
+        <h3 id="stVal" class="section-title">ค่าสี</h3>
+        <div class="st-row"><span id="stCaseL">ตัวอักษร HEX</span>
+          <div class="seg" role="radiogroup" aria-labelledby="stCaseL">
+            <button role="radio" class="seg-text font-mono" data-pref-radio="hexCase" data-value="upper">#FF5733</button>
+            <button role="radio" class="seg-text font-mono" data-pref-radio="hexCase" data-value="lower">#ff5733</button>
+          </div></div>
+        <label class="st-row"><span>ค่าที่คัดลอกด้วยปุ่ม C</span>
+          <select class="input" data-pref="copyFormat"><option value="hex">HEX</option><option value="rgb">RGB</option><option value="cmyk">CMYK</option></select></label>
+        <label class="st-row"><span>จำนวนประวัติสี<small>ไม่นับสีที่ปักหมุด</small></span>
+          <select class="input" data-pref="historyLimit" data-num><option>20</option><option>50</option><option>100</option></select></label>
+      </section>
+      <section class="st-sec" aria-labelledby="stApp">
+        <h3 id="stApp" class="section-title">แอปและการใช้งานออฟไลน์</h3>
+        <p id="pwaStatus" class="text-sm"></p>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <button id="btnInstall" class="btn btn-primary btn-sm" hidden><i data-lucide="monitor-down"></i><span>ติดตั้งเป็นแอป</span></button>
+          <button id="btnUpdateApp" class="btn btn-outline btn-sm" hidden><i data-lucide="refresh-cw"></i><span>อัปเดตเป็นเวอร์ชันใหม่</span></button>
+        </div>
+      </section>
+      <section class="st-sec" aria-labelledby="stData">
+        <h3 id="stData" class="section-title">ข้อมูลในเครื่องนี้</h3>
+        <p id="storageInfo" class="text-xs text-mute mb-2"></p>
+        <div class="flex flex-wrap gap-2">
+          <button id="stClearHistory" class="btn btn-outline btn-sm"><i data-lucide="eraser"></i><span>ล้างประวัติสี</span></button>
+          <button id="stClearPalettes" class="btn btn-outline btn-sm"><i data-lucide="trash-2"></i><span>ล้างพาเลตต์ทั้งหมด</span></button>
+          <button id="stResetPrefs" class="btn btn-outline btn-sm"><i data-lucide="rotate-ccw"></i><span>คืนค่าการตั้งค่า</span></button>
+        </div>
+        <p class="text-[11px] text-mute mt-2">ภาพที่เปิดไม่เคยถูกบันทึก — อยู่ในหน่วยความจำจนกว่าจะล้างภาพหรือปิดแท็บ</p>
+      </section>
+    </div>
+  </dialog>
+
+  <!-- Confirm dialog -->
+  <dialog id="confirmDialog" class="dialog glass" aria-labelledby="cfTitle" aria-describedby="cfText">
+    <form method="dialog" class="flex flex-col gap-3">
+      <h2 id="cfTitle" class="font-semibold"></h2>
+      <p id="cfText" class="text-sm text-mute"></p>
+      <label id="cfOptionWrap" class="flex items-center gap-2 text-sm" hidden><input type="checkbox" id="cfOption" class="accent-orange-500 w-4 h-4"><span id="cfOptionText"></span></label>
+      <div class="flex justify-end gap-2 mt-1">
+        <button value="cancel" class="btn btn-outline">ยกเลิก</button>
+        <button value="ok" id="cfOk" class="btn bg-rose-600 hover:bg-rose-700 text-white">ยืนยัน</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+</body>
+</html>
